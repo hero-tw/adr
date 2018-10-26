@@ -2,7 +2,7 @@
  
 * Status: [under investigation]
 * Deciders: [EFX Architects and Managers]
-* Date: [2018-10-22 when the decision was last updated]
+* Date: [2018-10-26 when the decision was last updated]
  
 Technical Story: [[ADR for Persistence](https://trello.com/c/85PvOlRY/51-spike-adr-for-persistence-rds-dynamo-cassandra)]
 
@@ -33,7 +33,7 @@ Chosen option: MongoDB. Although Cassandra is currently being used, given the mi
 MongoDB is a cloud-agnostic technology with scaling benefits like Cassandra's and proven products for integrating with the major public cloud platforms.
 
 ### Positive Consequences
-MongoDB scaling and high availability benefits similar to Cassandra but has simpler implementation and management. Schema-less and JSON-like documents allows for flexible data structure. MongoDB Atlas, MongoDB Stitch (for serverless), and MongoDB Cloud manager simplify integration and management for any of the major cloud platforms.
+MongoDB has scaling and high availability benefits similar to Cassandra but has simpler implementation and management. Schema-less and JSON-like documents allows for flexible data structure. MongoDB Atlas, MongoDB Stitch (for serverless), and MongoDB Cloud manager simplify integration and management for any of the major cloud platforms.
 
 ### Negative consequences
 While MongoDB has built-in replication with auto-elections so you can set up a secondary database that can be auto-elected if the primary database becomes unavailable, it requires some setup to do replication. Reads and writes are committed to the primary replica first and then replicated to the secondary replicas.
