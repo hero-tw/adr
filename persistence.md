@@ -45,7 +45,7 @@ MongoDB has a single master. While the auto-elect process happens automatically,
 ### Amazon RDS with Postgres
 
 * [Performance] Neutral, depends on data structure but relative to the other options for writing large amounts of data, it lags behind
-* [High Availability] Neutral, 
+* [High Availability] Neutral, decent but relative to other options, it isn't as comparable
 * [Ease of Use] Good, generally developer-friendly SQL database
 * [Infrastructure] Good, easily integrated with AWS (cloud native product)
 * [Cloud Agnostic] Bad, AWS-specific product
