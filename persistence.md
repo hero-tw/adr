@@ -69,7 +69,7 @@ MongoDB has a single master. While the auto-elect process happens automatically,
 * [Cloud Agnostic] Good, isn't tied to any public cloud platform
 * [Cost] TBD; depends on usage where you pay for infrastructure where Cassandra is hosted (more regions can multiply cost)
 
-###MongoDB
+### MongoDB
 
 * [Performance] Good, meant for large data quantities and secondary indexes are a first-class construct in MongoDB so you can index on any property 
 * [High Availability] Good, automatic horizontal scaling and data replication supported; another node takes over when master node goes down (but there is downtime during this process)
