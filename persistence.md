@@ -8,86 +8,83 @@ Technical Story: [[ADR for Persistence](https://trello.com/c/85PvOlRY/51-spike-a
 
 ## Context and Problem Statement
 
-Currently, Cassandra is the data persistence technology implemented in KFE, but given the use-case of a data persistence technology in KFE and the upcoming migration to AWS, other database options are being considered to replace the current Cassandra database.
-Here we assess the pros and cons of each database that the team has investigated so far.
+Currently, Cassandra is the data persistence technology implemented in KFE, but due to its basic use-case in KFE and the upcoming migration to AWS, other database options are being considered as a replacement to simplify the migration and maintenance.
+Here, we assess the pros and cons of each database that the team has investigated so far.
+
 ## Decision Drivers
 
-* Performance; How many writes/reads per second each database can perform considering size of entries
-* Object Modeling
-* Ease of Implementation
-* Ease of Integrating with AWS
-* Documentation on the Database
-* Cost
-
+* Performance: must keep up with frequency and size of record storage
+* High Availability: scaling and data replication ensure accessibility of data
+* Ease of Use: dev-friendliness and learning curve
+* Infrastructure: ease of integration with public cloud platform
+* Cloud Agnostic: client favors cloud agnosticism for potential future optimization / vendor or client agreements
+* Cost: depends on usage
 
 ## Considered Options
 
-* Amazon RDS (AWS managed)
+* Amazon RDS with Postgres (AWS managed)
 * Amazon DynamoDB (AWS managed)
 * Cassandra (Apache)
-
+* MongoDB
 
 ## Decision Outcome (TBD)
 
-Chosen option: "[DynamoDB]", because [DynamoDB allows a sufficient amount of reads and writes to be made on a machine per second, while also scaling horizontally. This optimizes the writing of data, which 
-also is beneficial because this database will not be queried often for records unlike Amazon RDS (its role is to simply hold a copy of the data that will be placed in the elastic search). 
-There is enough documentation on the technology to allow developers to use it more easily than Cassandra, and it is also a product of Amazon which will ease the integration of DynamoDB into other Amazon services.
-].
+Chosen option: MongoDB. Although Cassandra is currently being used, given the migration to public cloud infrastructure and the need for basic data persistence, a simpler and more easily maintained technology is considered more desirable. 
+MongoDB is a cloud-agnostic technology with scaling benefits like Cassandra's and proven products for integrating with the major public cloud platforms.
 
 ### Positive Consequences
-[e.g., improvement of quality attribute satisfaction, follow-up decisions required, …]
-[DynamoDB focuses on storing data that isn't to be queried too much or manipulated, which is exactly what is desired. Horizontal scaling optimizes the speed of writing to the database]
-…
+MongoDB scaling and high availability benefits similar to Cassandra but has simpler implementation and management. Schema-less and JSON-like documents allows for flexible data structure. MongoDB Atlas, MongoDB Stitch (for serverless), and MongoDB Cloud manager simplify integration and management for any of the major cloud platforms.
+
 ### Negative consequences
-[The database is not too efficient when it comes to querying the data. You are not able to manipulate the data the way that you are in relational databases, such as joining tables.]
-…
+While MongoDB has built-in replication with auto-elections so you can set up a secondary database that can be auto-elected if the primary database becomes unavailable, it requires some setup to do replication. Reads and writes are committed to the primary replica first and then replicated to the secondary replicas.
+
+MongoDB has a single master. While the auto-elect process happens automatically, it can take 10 to 40 seconds for it to occur. While this is happening, you can not write to the replica set.
 
 ## Pros and Cons of the Options
 
-### Amazon RDS
+### Amazon RDS with Postgres
 
-* Neutral, message size due to avro serialization is not an issue
-* Good, because setup is simple (manual or terraform)
-* Bad, only on AWS, limited options to run locally
-* TBD, cost dependent on usage across environments, pay for usage rather than for infra
-* Bad, schema management will need to be custom built
-* Bad, retention limited to 7 days, default is 24 hours
+* [Performance] Neutral, depends on data structure but relative to the other options for writing large amounts of data, it lags behind
+* [High Availability] Neutral, 
+* [Ease of Use] Good, generally developer-friendly SQL database
+* [Infrastructure] Good, easily integrated with AWS (cloud native product)
+* [Cloud Agnostic] Bad, AWS-specific product
+* [Cost] TBD; depends on usage beyond free tier allowance and pricing contract (hourly rates, per request rates, and bulk duration rates)
 
 ### Amazon DynamoDB
 
-* Neutral, unchanged from current process
-* Bad, self managed setup and upgrades, many operational tasks required
-* Good, can be run on any cloud or locally
-* TBD, cost dependent on usage across environments, pay for compute rather than by message
-* Good, schema management available in Kafka library
-* Good, retention only limited by storage size
+* [Performance] Good, meant for large data quantities
+* [High Availability] Good, automatic horizontal scaling and data replication supported
+* [Ease of Use] Good, NoSQL has a learning curve but is manageable thereafter
+* [Infrastructure] Good, easily integrated with AWS (cloud native product)
+* [Cloud Agnostic] Bad, AWS-specific product
+* [Cost] TBD; depends on quantity of read/write units and which regions
 
 ### Cassandra
 
-*Neutral, unchanged from current process
-*Good, managed by Kafka experts
-*Good, can be accessed from any cloud or locally
-*TBD, cost dependent on usage across environments, pay for compute rather than by message
-*Good, schema management available in Kafka library
-*Good, retention only limited by storage size
+* [Performance] Good, depends on configuration (configured with queries in mind) but meant for large data quantities
+* [High Availability] Good, automatic horizontal scaling and data replication supported
+* [Ease of Use] Bad, relatively steep learning curve and data modelling must be configured with queries in mind
+* [Infrastructure] Bad, relative to the other options, a lot of management work will be put into integration and upkeep
+* [Cloud Agnostic] Good, isn't tied to any public cloud platform
+* [Cost] TBD; depends on usage where you pay for infrastructure where Cassandra is hosted (more regions can multiply cost)
 
+###MongoDB
+
+* [Performance] Good, meant for large data quantities and secondary indexes are a first-class construct in MongoDB so you can index on any property 
+* [High Availability] Good, automatic horizontal scaling and data replication supported; another node takes over when master node goes down (but there is downtime during this process)
+* [Ease of Use] Good, NoSQL has a learning curve but has expressive object model that makes it developer-friendly
+* [Infrastructure] Good, multiple products that simplify integration and management for any of the major cloud platforms
+* [Cloud Agnostic] Good, isn't tied to any public cloud platform and has products for integrating with major public cloud vendors in multiple fashions
+* [Cost] TBD; depends on usage with multiple plans and tiers depending on needs
 
 ## Links
-[Link type] [Link to ADR]
-…
+https://aws.amazon.com/rds/
 
----
+https://aws.amazon.com/dynamodb/
 
-| Description                    | Kafka EC2/S  | KaaS                 | Kinesis             |
-|----------------------------|-----------------|-------------------|------------------|
-| Message size(Avro)       |  Y                    | Y                       |  Y                     | 
-| Infrastructure setup       | Medium          | Easy                 | Easy                 |         
-| Agnosticism                  | Y*                    | Y                       | N                     |
-| Schema Registry          | Y                      | Y                      | N                      |
-| Retention .                    | Unlimited         | Unlimited         | 7 days max**   |
-| Perf/Cost ***,****           | ~30k msg/sec | ~30k msg/sec | ~20k msg/sec  |
+https://aws.amazon.com/blogs/big-data/best-practices-for-running-apache-cassandra-on-amazon-ec2/
 
-1. While Kafka is agnostic, EC2 is not.  But it's not that complicated to deploy to other servers.
-1. Unless Kinesis VCR
-1. Performance #s obtained from https://blog.insightdatascience.com/ingestion-comparison-kafka-vs-kinesis-4c7f5193a7cd
-1. Decision should be made based on actual needs.  Kinesis' cost goes up significantly based on size/number of messages.  This however should be reconciled with the costs of self maintaining a Kafka cluster, including but not limited to human resources, load balancing, AZ replication etc.  No costs estimate are available for KaaS (Confluent) at this time since usage is not specified.
+https://www.mongodb.com/
+
+https://blog.panoply.io/cassandra-vs-mongodb
